@@ -14,7 +14,7 @@ def ask_mode():
             return connection.start_server if mode == "1" else connection.connect_to_server
 
 
-def new_game():
+def main():
     pygame.init()
 
     role_images = graphics.read_role_images()
@@ -24,15 +24,23 @@ def new_game():
     selected_piece_position = None
     moves = None
 
-    moved = None
-
-    events = set()
-
-    def read_events():
-        nonlocal events
+    while True:
         events = graphics.get_events()
 
-    def update_graphics():
+        if graphics.should_close(events):
+            break
+
+        if graphics.did_select_piece(events):
+            position = graphics.get_selected_piece_position()
+
+            if moves is not None and position in moves:
+                chess.move_piece(board, selected_piece_position, position)
+                selected_piece_position = None
+                moves = None
+            else:
+                selected_piece_position = position
+                moves = chess.get_available_piece_moves(board, position)
+
         window.fill(config.BACKGROUND_COLOR)
 
         graphics.draw_tiles(window)
@@ -43,36 +51,7 @@ def new_game():
 
         pygame.display.update()
 
-    def update_game(opponent_move=None):
-        nonlocal moves, selected_piece_position, moved
-
-        if opponent_move is not None:
-            chess.move_piece(board, *opponent_move)
-
-        moved = None
-
-        if graphics.should_close(events):
-            return
-
-        if graphics.did_select_piece(events):
-            position = graphics.get_selected_piece_position()
-
-            if moves is not None and position in moves:
-                chess.move_piece(board, selected_piece_position, position)
-                moved = selected_piece_position, position
-                selected_piece_position = None
-                moves = None
-            else:
-                selected_piece_position = position
-                moves = chess.get_available_piece_moves(board, position)
-
-        return moved
-
-    return read_events, update_graphics, update_game
-
-
-def main():
-    read_events, update_graphics, update_game = new_game()
+    pygame.quit()
 
 
 if __name__ == "__main__":

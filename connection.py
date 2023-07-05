@@ -9,4 +9,4 @@ def connect_to_server(update):
     addr, port = config.HOST_ADDR
     with ws.connect(f"ws://{addr}:{port}") as websocket:
         websocket.send("Hello world!")
-        message = websocket.recv()
+        message = websocket.recv_messages()
